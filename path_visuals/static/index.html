@@ -1,0 +1,171 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Path Visuals · Movement explorer</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="/static/vendor/leaflet.css" />
+    <link rel="stylesheet" href="/static/style.css" />
+  </head>
+  <body>
+    <header>
+      <a class="brand" href="/" aria-label="Path Visuals home"
+        ><span class="brand-icon">↗</span> path<span>visuals</span></a
+      ><span class="header-note">MOVEMENT EXPLORER</span
+      ><button id="help">Data format guide ↗</button>
+    </header>
+    <main>
+      <aside>
+        <div class="eyebrow">YOUR WORKSPACE</div>
+        <h1>Every path<br />tells a story.</h1>
+        <p class="intro">
+          Explore where objects go.<br />Understand how they move.
+        </p>
+        <div class="section-head">
+          <h2>Data files</h2>
+          <button id="refresh" title="Rescan the data folder">↻ Refresh</button>
+        </div>
+        <p class="hint">Drop files into <code>data/</code>, then refresh.</p>
+        <div id="files" class="files" aria-label="Data files"></div>
+        <div class="section-head">
+          <h2>Objects</h2>
+          <button id="toggle-all">Hide all</button>
+        </div>
+        <div id="tracks"></div>
+        <div class="settings">
+          <h2>View settings</h2>
+          <label
+            >Floor
+            <select id="floor">
+              <option value="all">All floors</option>
+            </select></label
+          ><label
+            >Map background <input id="basemap" type="checkbox" checked
+          /></label>
+          <p class="hint">Map tiles require internet. Tracks stay local.</p>
+        </div>
+        <div class="local-badge">
+          <span>●</span> LOCAL WORKSPACE
+          <small>Demo tracks are fictional.</small>
+        </div>
+      </aside>
+      <section class="explorer" aria-label="Movement visualization">
+        <div class="view-heading">
+          <div>
+            <div class="eyebrow">SPATIAL EXPLORER</div>
+            <h2 id="dataset-title">Loading your workspace…</h2>
+          </div>
+          <div class="mode-group" aria-label="Visualization mode">
+            <button data-mode="paths" aria-pressed="true">Paths</button
+            ><button data-mode="points" aria-pressed="false">Points</button
+            ><button data-mode="heat" aria-pressed="false">Density</button>
+          </div>
+        </div>
+        <div class="stats">
+          <div>
+            <strong id="object-count">—</strong><span>visible objects</span>
+          </div>
+          <div>
+            <strong id="point-count">—</strong><span>observations</span>
+          </div>
+          <div><strong id="duration">—</strong><span>recorded time</span></div>
+          <div class="stat-note">A new perspective<br />on movement.</div>
+        </div>
+        <div class="map-wrap">
+          <div id="map" aria-label="Interactive geographic map"></div>
+          <div class="map-caption">
+            WGS84 <span>•</span> <span id="map-status">Historical tracks</span>
+          </div>
+          <button id="fit">⌖ Fit tracks</button>
+          <div id="notice" role="status" hidden></div>
+        </div>
+        <div class="timeline">
+          <div class="timeline-head">
+            <div>
+              <span class="eyebrow">TIMELINE · UTC</span>
+              <div id="clock">—</div>
+            </div>
+            <label
+              >Trail
+              <select id="trail">
+                <option value="0">All history</option>
+                <option value="60">Last minute</option>
+                <option value="300">Last 5 minutes</option>
+                <option value="900">Last 15 minutes</option>
+              </select></label
+            >
+          </div>
+          <div class="playback">
+            <button id="play" disabled aria-label="Play movement">▶</button
+            ><input
+              id="time"
+              aria-label="Playback time"
+              type="range"
+              min="0"
+              max="1000"
+              value="1000"
+              disabled
+            /><select id="speed" aria-label="Playback speed">
+              <option value="30">30×</option>
+              <option value="60" selected>60×</option>
+              <option value="300">300×</option>
+            </select>
+          </div>
+          <div class="time-labels">
+            <span id="start">—</span><button id="reset">↺ Start over</button
+            ><span id="end">—</span>
+          </div>
+        </div>
+      </section>
+    </main>
+    <dialog id="guide">
+      <div class="section-head">
+        <h2>Supported data structures</h2>
+        <button id="close-guide" aria-label="Close data guide">✕</button>
+      </div>
+      <p>
+        Paste files into the project's <code>data/</code> folder and choose
+        <b>Refresh</b>. Choose a file, then toggle its objects independently.
+      </p>
+      <h3>CSV / TSV — recommended</h3>
+      <p>
+        UTF-8 with a header. Comma, semicolon and tab delimiters are detected
+        automatically. Use a dot for decimals.
+      </p>
+      <pre>
+object_id,timestamp,latitude,longitude
+bike-01,2026-09-08T08:00:00Z,52.516,13.378
+bike-01,2026-09-08T08:01:00Z,52.517,13.379</pre>
+      <p>
+        <b>Required:</b> timestamp, latitude, longitude.<br /><b>Optional:</b>
+        object_id (defaults to filename), segment (path breaks), level (floor;
+        blank means unknown).
+      </p>
+      <p>
+        Aliases: <code>user</code> → object_id, <code>time</code> → timestamp,
+        <code>lat</code> → latitude, <code>lon / lng</code> → longitude.
+      </p>
+      <h3>GPX 1.0 / 1.1</h3>
+      <p>
+        Tracks with timestamped <code>trkpt</code> points. Each track is an
+        object; track segments stay separate. Routes and untimed waypoints must
+        first be converted to CSV.
+      </p>
+      <h3>Time & coordinates</h3>
+      <p>
+        ISO 8601 timestamps; offsets are normalized to UTC. Timestamps without
+        an offset are interpreted as UTC. Coordinates must be WGS84 decimal
+        degrees. Observations are sorted by time. Invalid rows produce an error
+        rather than being silently dropped.
+      </p>
+      <p>
+        Limits: 25 MiB and 100,000 observations per file. Convert other sources,
+        including GeoJSON, to the CSV structure above. Density shows observation
+        concentration, not time-weighted dwell.
+      </p>
+    </dialog>
+    <script src="/static/vendor/leaflet.js"></script>
+    <script type="module" src="/static/app.js"></script>
+  </body>
+</html>

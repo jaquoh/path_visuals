@@ -1,0 +1,14 @@
+{
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test tests/timeline.test.js",
+    "test:browser": "playwright test",
+    "format": "prettier --write \"path_visuals/static/*.{js,css,html}\" \"tests/**/*.js\" playwright.config.js package.json",
+    "format:check": "prettier --check \"path_visuals/static/*.{js,css,html}\" \"tests/**/*.js\" playwright.config.js package.json"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.63.0",
+    "prettier": "^3.9.6"
+  }
+}
